@@ -1,14 +1,13 @@
 const express = require("express");
 const Groq = require("groq-sdk");
 const User = require("../models/User");
-const { isLoggedIn } = require("../middleware/auth");
 const { retrieveRelevantSections } = require("../utils/retrieve");
 
 const router = express.Router();
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 // Send a message
-router.post("/chat", isLoggedIn, async (req, res) => {
+router.post("/chat", async (req, res) => {
   const { message, conversationId } = req.body;
 
   if (!message || typeof message !== "string") {
@@ -16,29 +15,6 @@ router.post("/chat", isLoggedIn, async (req, res) => {
   }
 
   try {
-    const user = await User.findById(req.user._id);
-
-    // Find or create conversation
-    let conversation;
-    if (conversationId) {
-      conversation = user.conversations.id(conversationId);
-    }
-    if (!conversation) {
-      user.conversations.push({ title: message.slice(0, 50), messages: [] });
-      conversation = user.conversations[user.conversations.length - 1];
-    }
-
-    // Add user message to history
-    conversation.messages.push({ role: "user", content: message });
-    conversation.updatedAt = Date.now();
-
-    // Build recent history for context (last 6 messages)
-    const recentHistory = conversation.messages.slice(-6).map(m => ({
-      role: m.role,
-      content: m.content
-    }));
-
-    // Get relevant constitution sections
     const relevantContext = retrieveRelevantSections(message);
 
     const SYSTEM_PROMPT = `You are Law-Bot, an AI assistant that answers questions about the NACOS-LASU Constitution 2026. Always cite exact articles and sections. Only answer constitution-related questions. Be concise but thorough.
@@ -46,26 +22,56 @@ router.post("/chat", isLoggedIn, async (req, res) => {
 Relevant constitution sections:
 ${relevantContext}`;
 
+    // Build messages array
+    const messages = [
+      { role: "system", content: SYSTEM_PROMPT },
+      { role: "user", content: message }
+    ];
+
+    // If user is logged in, load conversation history
+    if (req.user && conversationId) {
+      const user = await User.findById(req.user._id);
+      const conversation = user?.conversations.id(conversationId);
+      if (conversation) {
+        const recentHistory = conversation.messages.slice(-6).map(m => ({
+          role: m.role,
+          content: m.content
+        }));
+        messages.splice(1, 0, ...recentHistory);
+      }
+    }
+
     const completion = await groq.chat.completions.create({
       model: "llama-3.1-8b-instant",
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        ...recentHistory
-      ],
+      messages,
       temperature: 0.3,
       max_tokens: 800
     });
 
     const reply = completion.choices[0].message.content;
 
-    // Save bot reply to history
-    conversation.messages.push({ role: "assistant", content: reply });
-    await user.save();
+    // Save to DB only if user is logged in
+    if (req.user) {
+      const user = await User.findById(req.user._id);
+      let conversation;
 
-    res.json({
-      reply,
-      conversationId: conversation._id
-    });
+      if (conversationId) {
+        conversation = user.conversations.id(conversationId);
+      }
+      if (!conversation) {
+        user.conversations.push({ title: message.slice(0, 50), messages: [] });
+        conversation = user.conversations[user.conversations.length - 1];
+      }
+
+      conversation.messages.push({ role: "user", content: message });
+      conversation.messages.push({ role: "assistant", content: reply });
+      conversation.updatedAt = Date.now();
+      await user.save();
+
+      return res.json({ reply, conversationId: conversation._id });
+    }
+
+    res.json({ reply });
 
   } catch (error) {
     console.error("Chat error:", error.message);
@@ -73,8 +79,9 @@ ${relevantContext}`;
   }
 });
 
-// Get all conversations for logged in user
-router.get("/conversations", isLoggedIn, async (req, res) => {
+// Get all conversations
+router.get("/conversations", async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "Not logged in" });
   try {
     const user = await User.findById(req.user._id);
     const conversations = user.conversations.map(c => ({
@@ -90,8 +97,9 @@ router.get("/conversations", isLoggedIn, async (req, res) => {
   }
 });
 
-// Get a single conversation with full messages
-router.get("/conversations/:id", isLoggedIn, async (req, res) => {
+// Get single conversation
+router.get("/conversations/:id", async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "Not logged in" });
   try {
     const user = await User.findById(req.user._id);
     const conversation = user.conversations.id(req.params.id);
@@ -102,8 +110,9 @@ router.get("/conversations/:id", isLoggedIn, async (req, res) => {
   }
 });
 
-// Delete a conversation
-router.delete("/conversations/:id", isLoggedIn, async (req, res) => {
+// Delete conversation
+router.delete("/conversations/:id", async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "Not logged in" });
   try {
     const user = await User.findById(req.user._id);
     user.conversations.pull(req.params.id);
