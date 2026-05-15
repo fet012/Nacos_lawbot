@@ -9,11 +9,11 @@ const app = express();
 
 // Middlewares
 app.use(cors({
-  origin: ["http://localhost:5500", "http://127.0.0.1:5500"],
+  origin: "https://nacos-hackathon-project.vercel.app",
   credentials: true,
   methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
-}));;
+}));
 app.use(express.json());
 
 // Session (no MongoDB store for now)
