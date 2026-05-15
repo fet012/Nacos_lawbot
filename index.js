@@ -16,7 +16,7 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+app.options('/*', cors());
 app.use(express.json());
 
 // Session (no MongoDB store for now)
