@@ -10,8 +10,10 @@ const app = express();
 // Middlewares
 app.use(cors({
   origin: ["http://localhost:5500", "http://127.0.0.1:5500"],
-  credentials: true
-}));
+  credentials: true,
+  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));;
 app.use(express.json());
 
 // Session (no MongoDB store for now)
@@ -19,7 +21,11 @@ app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 1000 * 60 * 60 * 24 * 7 }
+  cookie: { 
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+    sameSite: 'none',
+    secure: true
+  }
 }));
 
 // Passport
