@@ -65,7 +65,7 @@ router.get("/me", (req, res) => {
 
 router.get("/logout", (req, res) => {
   req.logout(() => {
-    res.json({ message: "Logged out successfully" });
+    res.redirect(process.env.FRONTEND_URL || "http://localhost:5500");
   });
 });
 
