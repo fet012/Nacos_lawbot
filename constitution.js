@@ -917,7 +917,11 @@ Section 98: Commencement
 
 (1) The provision of this constitution shall come into force immediately adopted by the congress of NACOS-LASU.
 
-SCHEDULES
+Section 99: Leaders
+(1) The current speaker of NACOS is RT. Atanda Ibrahim
+(2) The current president of NACOS is Oludipe Vincent
+
+
 
 FIRST SCHEDULE: UNION ANTHEM
 
