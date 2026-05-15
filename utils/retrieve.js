@@ -11,6 +11,7 @@ const sections = [
   { keywords: ["transition", "handover", "swear", "inaugur", "oath"], text: `Section 60-62 and 94: Transition - Transition period begins when IEC is inaugurated, 6 weeks before second semester exams. SEC and CSRC remain as transitional government. Any aspirant from incumbent SEC or CSRC must resign at least 7 days before transition period. Formal handover ceremony required. Oath of office administered by IEC chairman.` },
   { keywords: ["patron", "staff adviser", "honorary", "honorary member"], text: `Section 8-10: Patrons, Staff Advisers, Honorary Members - Patrons nominated by SEC, approved by CSRC, max 3 per session. Staff Advisers max 3: two Academic Staff (min PhD) and one Non-Academic staff. Honorary members are past members nominated by SEC and ratified by CSRC.` },
   { keywords: ["code of conduct", "conduct", "officer", "benefit", "gift", "interest"], text: `Second Schedule - Code of Conduct: No officer shall let personal interest conflict with duties. No officer shall accept benefits or gifts for discharge of duties. No officer shall be in societies incompatible with office dignity. No officer shall do unlawful acts prejudicial to others rights. Breaches reported to CSRC.` },
+  { keywords: ["election", "vote", "contest", "campaign", "cgpa", "eligib", "iec", "ballot", "aspirant", "nomina", "speaker", "run", "position", "pro", "become"], text: `...` },
 ];
 
 function retrieveRelevantSections(question) {
