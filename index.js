@@ -9,8 +9,8 @@ const app = express();
 
 // Middlewares
 app.use(cors({
-  origin: "*",
-  credentials: false
+  origin: ["http://localhost:5500", "http://127.0.0.1:5500"],
+  credentials: true
 }));
 app.use(express.json());
 
