@@ -7,19 +7,29 @@ const passport = require("passport");
 
 const app = express();
 
-// Middlewares
+// CORS
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || "https://nacos-hackathon-project.vercel.app",
+  origin: "https://nacos-hackathon-project.vercel.app",
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
-app.options('/*', cors());
+
+// Handle preflight
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://nacos-hackathon-project.vercel.app');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
+
 app.use(express.json());
 
-// Session (no MongoDB store for now)
+// Session
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
@@ -38,7 +48,7 @@ app.use(passport.session());
 // Database
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => {
+  .catch(() => {
     console.log("⚠️ MongoDB unavailable - running without database");
   });
 
